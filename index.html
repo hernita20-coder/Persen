@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Persen & Desimal - SD Kelas 4</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            yellow: '#FFD166',
+                            green: '#06D6A0',
+                            blue: '#118AB2',
+                            red: '#EF476F',
+                            dark: '#073B4C',
+                            purple: '#8338EC'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Fredoka', cursive, 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 100%);
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .btn-bounce {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .btn-bounce:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+        .btn-bounce:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
+        /* Canvas Confetti overlay */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #06D6A0;
+            border-radius: 4px;
+        }
+
+        /* Card flip for matching game */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        .grid-cell {
+            transition: background-color 0.15s ease;
+        }
+
+        /* Mobile touch drag visual aid */
+        .selected-drag-item {
+            outline: 4px solid #8338EC;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-brand-dark pb-12">
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- HEADER & NAVIGASI -->
+    <header class="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-40 border-b-4 border-brand-yellow">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            <!-- Logo / Brand -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('beranda')">
+                <div class="bg-brand-yellow p-2.5 rounded-2xl shadow-inner text-2xl text-brand-dark animate-bounce">
+                    <i class="fa-solid fa-percent"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-brand-dark tracking-wide">Dunia Persen SD</h1>
+                    <p class="text-xs text-slate-500 font-poppins">Kelas IV • Pecahan Desimal & Persen</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar Minimal -->
+            <div class="flex items-center space-x-4 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200 text-sm font-semibold">
+                <div class="flex items-center text-amber-500">
+                    <i class="fa-solid fa-star mr-1"></i>
+                    <span id="global-score">0</span> PTS
+                </div>
+                <div class="h-4 w-px bg-slate-300"></div>
+                <div class="flex items-center text-brand-purple">
+                    <i class="fa-solid fa-award mr-1"></i>
+                    <span id="global-badge">Pemula</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Navigasi Utama -->
+        <nav class="max-w-6xl mx-auto px-2 mt-1 flex justify-center space-x-1 md:space-x-2 overflow-x-auto pb-2 text-sm md:text-base font-semibold">
+            <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-btn px-3 md:px-4 py-2 rounded-xl flex items-center space-x-1 bg-brand-yellow text-brand-dark shadow">
+                <span>🏠</span><span>Beranda</span>
+            </button>
+            <button onclick="switchTab('materi')" id="nav-materi" class="nav-btn px-3 md:px-4 py-2 rounded-xl flex items-center space-x-1 hover:bg-slate-100 text-slate-600">
+                <span>📚</span><span>Materi</span>
+            </button>
+            <button onclick="switchTab('simulasi')" id="nav-simulasi" class="nav-btn px-3 md:px-4 py-2 rounded-xl flex items-center space-x-1 hover:bg-slate-100 text-slate-600">
+                <span>🔬</span><span>Simulasi</span>
+            </button>
+            <button onclick="switchTab('permainan')" id="nav-permainan" class="nav-btn px-3 md:px-4 py-2 rounded-xl flex items-center space-x-1 hover:bg-slate-100 text-slate-600">
+                <span>🎮</span><span>Permainan</span>
+            </button>
+            <button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn px-3 md:px-4 py-2 rounded-xl flex items-center space-x-1 hover:bg-slate-100 text-slate-600">
+                <span>📝</span><span>Kuis</span>
+            </button>
+            <button onclick="switchTab('hasil')" id="nav-hasil" class="nav-btn px-3 md:px-4 py-2 rounded-xl flex items-center space-x-1 hover:bg-slate-100 text-slate-600">
+                <span>🏆</span><span>Hasil</span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- CONTAINER UTAMA SEKSI CONTENT -->
+    <main class="max-w-6xl mx-auto px-4 mt-6">
+
+        <!-- 1. BERANDA TAB -->
+        <section id="tab-beranda" class="tab-content block space-y-6">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-brand-blue to-teal-500 rounded-3xl p-6 md:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between">
+                <div class="space-y-4 max-w-xl z-10 text-center md:text-left">
+                    <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full uppercase tracking-wider font-poppins">Matematika SD Kelas 4</span>
+                    <h2 class="text-3xl md:text-5xl font-extrabold leading-tight">Belajar Persen & Desimal Mudah Dan Seru! 🎉</h2>
+                    <p class="text-blue-50 text-base md:text-lg font-poppins">Jelajahi hubungan antara pecahan desimal perseratusan dengan persen lewat permainan, simulasi interaktif, dan kuis berhadiah lencana!</p>
+                    <div class="pt-2 flex flex-wrap gap-3 justify-center md:justify-start">
+                        <button onclick="switchTab('simulasi')" class="btn-bounce bg-brand-yellow text-brand-dark px-6 py-3 rounded-2xl font-bold shadow-lg text-lg flex items-center space-x-2">
+                            <span>🚀 Mulai Simulasi</span>
+                        </button>
+                        <button onclick="switchTab('materi')" class="btn-bounce bg-white/20 hover:bg-white/30 text-white border border-white/40 px-6 py-3 rounded-2xl font-bold text-lg flex items-center space-x-2">
+                            <span>📖 Pelajari Materi</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Mascot / Decoration -->
+                <div class="mt-6 md:mt-0 relative flex justify-center items-center">
+                    <div class="w-44 h-44 md:w-56 md:h-56 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border-4 border-white/30 shadow-2xl">
+                        <span class="text-7xl md:text-8xl animate-pulse">📊</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fitur Utama Quick Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div onclick="switchTab('simulasi')" class="btn-bounce bg-white p-6 rounded-3xl shadow-md border-2 border-teal-100 hover:border-brand-green cursor-pointer text-center space-y-3">
+                    <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">🔬</div>
+                    <h3 class="text-xl font-bold">Simulasi Grid 10x10</h3>
+                    <p class="text-sm text-slate-500 font-poppins">Warnai kotak seratusan & lihat langsung perubahannya ke desimal & persen!</p>
+                </div>
+
+                <div onclick="switchTab('permainan')" class="btn-bounce bg-white p-6 rounded-3xl shadow-md border-2 border-purple-100 hover:border-brand-purple cursor-pointer text-center space-y-3">
+                    <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">🎮</div>
+                    <h3 class="text-xl font-bold">5 Moda Permainan</h3>
+                    <p class="text-sm text-slate-500 font-poppins">Open the Box, Drag & Drop, Matching Card, hingga Tantangan Cepat Timer!</p>
+                </div>
+
+                <div onclick="switchTab('kuis')" class="btn-bounce bg-white p-6 rounded-3xl shadow-md border-2 border-pink-100 hover:border-brand-red cursor-pointer text-center space-y-3">
+                    <div class="w-16 h-16 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">📝</div>
+                    <h3 class="text-xl font-bold">Kuis Interaktif</h3>
+                    <p class="text-sm text-slate-500 font-poppins">Pilihan ganda, Isian singkat, & Benar/Salah lengkap dengan pembahasannya.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. MATERI TAB -->
+        <section id="tab-materi" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-200 space-y-6">
+                <div class="border-b pb-4 flex items-center space-x-3">
+                    <span class="text-4xl">📚</span>
+                    <div>
+                        <h2 class="text-2xl font-bold">Konsep Persen & Desimal Perseratusan</h2>
+                        <p class="text-slate-500 text-sm font-poppins">Panduan mudah memahami arti persen dan hubungannya dengan desimal</p>
+                    </div>
+                </div>
+
+                <!-- Modul 1: Apa itu persen? -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="bg-amber-50 p-6 rounded-2xl border-2 border-brand-yellow space-y-3">
+                        <span class="bg-brand-yellow text-brand-dark px-3 py-1 rounded-full text-xs font-bold">Konsep 1</span>
+                        <h3 class="text-xl font-bold text-slate-800">Apa Itu Persen (%) ?</h3>
+                        <p class="text-slate-600 font-poppins text-sm leading-relaxed">
+                            Kata <strong>Persen</strong> berasal dari bahasa Latin <em>"per centum"</em> yang artinya <strong>"perseratus"</strong> atau <strong>"tiap-tiap seratus"</strong>. 
+                            Simbol persen adalah <strong class="text-brand-red text-lg">%</strong>.
+                        </p>
+                        <div class="bg-white p-3 rounded-xl shadow-sm text-center font-bold text-brand-blue">
+                            25% artinya 25 dari 100 bagian (25/100)
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-2xl border-2 border-brand-blue space-y-3">
+                        <span class="bg-brand-blue text-white px-3 py-1 rounded-full text-xs font-bold">Konsep 2</span>
+                        <h3 class="text-xl font-bold text-slate-800">Hubungan Desimal Perseratusan</h3>
+                        <p class="text-slate-600 font-poppins text-sm leading-relaxed">
+                            Pecahan desimal dengan <strong>2 angka di belakang koma</strong> mewakili per seratus. 
+                            Oleh karena itu, desimal perseratusan sangat mudah diubah langsung ke persen!
+                        </p>
+                        <div class="bg-white p-3 rounded-xl shadow-sm text-center font-bold text-brand-purple">
+                            0,25 = 25/100 = 25%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modul 2: Contoh Konversi Visual -->
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <h3 class="text-lg font-bold mb-4 text-center">Tabel Hubungan Tiga Bentuk Nilai Sama</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div class="bg-white p-4 rounded-xl shadow border">
+                            <div class="text-3xl mb-1">🟦</div>
+                            <div class="text-xs text-slate-400">Pecahan Biasa</div>
+                            <div class="text-xl font-bold text-slate-700">7 / 100</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow border">
+                            <div class="text-3xl mb-1">🔢</div>
+                            <div class="text-xs text-slate-400">Pecahan Desimal</div>
+                            <div class="text-xl font-bold text-brand-blue">0,07</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow border">
+                            <div class="text-3xl mb-1">🎯</div>
+                            <div class="text-xs text-slate-400">Persen (%)</div>
+                            <div class="text-xl font-bold text-brand-green">7 %</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modul 3: Tips Cepat Konversi -->
+                <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-200 flex items-start space-x-4">
+                    <div class="text-3xl">💡</div>
+                    <div class="font-poppins text-sm text-emerald-900 space-y-1">
+                        <h4 class="font-bold text-base">Trik Cepat Siswa Pintar:</h4>
+                        <p>• Untuk mengubah <strong>Desimal Perseratusan ke Persen</strong>: Hilangkan koma dan tambahkan tanda %! (Contoh: 0,45 ➔ 45%).</p>
+                        <p>• Jika hanya 1 angka di belakang koma (misal 0,4), tambahkan 0 di belakangnya jadi 0,40 = 40%.</p>
+                        <p>• Jika desimal 0,05 ➔ ingat ada angka nol, nilainya adalah 5% (bukan 50%).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SIMULASI TAB -->
+        <section id="tab-simulasi" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold flex items-center space-x-2">
+                            <span>🔬 Simulasi Kotak Perseratusan (10x10)</span>
+                        </h2>
+                        <p class="text-slate-500 text-sm font-poppins">Klik atau seret pada kotak untuk mewarnai dan perhatikan perubahan nilai secara eksplisit!</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="presetSimulasi(25)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700">Set 25%</button>
+                        <button onclick="presetSimulasi(50)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700">Set 50%</button>
+                        <button onclick="presetSimulasi(75)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700">Set 75%</button>
+                        <button onclick="clearSimulasi()" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-bold">Reset</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <!-- Left: Grid 10x10 Interaktif -->
+                    <div class="lg:col-span-6 flex flex-col items-center">
+                        <div id="sim-grid-container" class="grid grid-cols-10 gap-1 bg-slate-200 p-3 rounded-2xl shadow-inner max-w-sm w-full aspect-square touch-none">
+                            <!-- 100 Grid Cells JS generated -->
+                        </div>
+                        <div class="mt-4 flex items-center space-x-4 w-full max-w-sm">
+                            <span class="text-xs font-semibold text-slate-500">Slider:</span>
+                            <input type="range" id="sim-slider" min="0" max="100" value="0" oninput="updateSimFromSlider(this.value)" class="w-full accent-brand-green h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Right: Real-Time Live Display -->
+                    <div class="lg:col-span-6 space-y-4">
+                        <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-3xl border-2 border-indigo-100 space-y-4">
+                            <h3 class="font-bold text-indigo-900 text-lg border-b border-indigo-200 pb-2">Analisis Real-Time Hubungan:</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-100 text-center">
+                                    <span class="text-xs text-slate-400 font-poppins uppercase tracking-wider block">Kotak Terarsir</span>
+                                    <span id="sim-count" class="text-3xl font-extrabold text-slate-800">0</span>
+                                    <span class="text-xs text-slate-500 block">dari 100 kotak</span>
+                                </div>
+
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-100 text-center">
+                                    <span class="text-xs text-slate-400 font-poppins uppercase tracking-wider block">Pecahan Perseratusan</span>
+                                    <span id="sim-fraction" class="text-2xl font-extrabold text-brand-purple">0/100</span>
+                                    <span class="text-xs text-slate-500 block">per seratus</span>
+                                </div>
+
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-100 text-center">
+                                    <span class="text-xs text-slate-400 font-poppins uppercase tracking-wider block">Desimal Perseratusan</span>
+                                    <span id="sim-decimal" class="text-3xl font-extrabold text-brand-blue">0,00</span>
+                                    <span class="text-xs text-slate-500 block">2 angka di belakang koma</span>
+                                </div>
+
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-100 text-center">
+                                    <span class="text-xs text-slate-400 font-poppins uppercase tracking-wider block">Persen (%)</span>
+                                    <span id="sim-percent" class="text-3xl font-extrabold text-brand-green">0%</span>
+                                    <span class="text-xs text-slate-500 block">simbol %</span>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Conclusion Box -->
+                            <div id="sim-explanation" class="bg-white p-4 rounded-2xl border-l-4 border-brand-green font-poppins text-sm text-slate-700 shadow-sm">
+                                Geser slider atau klik kotak di sebelah kiri untuk melihat keajaiban hubungan persen dan desimal!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. PERMAINAN TAB -->
+        <section id="tab-permainan" class="tab-content hidden space-y-6">
+            <!-- Game Selection Header -->
+            <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">🎮 Arena Permainan Edukatif</h2>
+                        <p class="text-slate-500 text-sm font-poppins">Pilih salah satu tantangan permainan seru untuk menguji keahlianmu!</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="selectGameSubTab('game-box')" id="btn-g-box" class="subgame-btn px-4 py-2 rounded-xl text-sm font-bold bg-brand-yellow text-brand-dark shadow">🎁 Open Box</button>
+                        <button onclick="selectGameSubTab('game-drag')" id="btn-g-drag" class="subgame-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">🧺 Drag & Drop</button>
+                        <button onclick="selectGameSubTab('game-match')" id="btn-g-match" class="subgame-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">🃏 Menjodohkan</button>
+                        <button onclick="selectGameSubTab('game-timer')" id="btn-g-timer" class="subgame-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">⚡ Tantangan Cepat</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-GAME 1: OPEN THE BOX -->
+            <div id="subgame-box" class="game-view block bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold">🎁 Open the Box Rahasia (15 Kotak Misteri)</h3>
+                        <p class="text-xs text-slate-500 font-poppins">Buka kotak misteri dan selesaikan tantangan untuk mendapatkan bintang!</p>
+                    </div>
+                    <div class="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                        Terbuka: <span id="box-opened-count">0</span>/15 Kotak
+                    </div>
+                </div>
+
+                <div id="box-grid" class="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                    <!-- 15 Boxes JS Generated -->
+                </div>
+            </div>
+
+            <!-- SUB-GAME 2: DRAG AND DROP -->
+            <div id="subgame-drag" class="game-view hidden bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <h3 class="text-xl font-bold">🧺 Sortir Kartu ke Keranjang Persen</h3>
+                        <p class="text-xs text-slate-500 font-poppins">Tarik desimal atau KLIK desimal lalu KLIK keranjang persen yang cocok!</p>
+                    </div>
+                    <button onclick="initDragGame()" class="px-3 py-1.5 bg-brand-blue text-white rounded-xl text-xs font-bold">Acak Ulang Kartu</button>
+                </div>
+
+                <!-- Kartu yang harus dipasangkan -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pilihan Kartu Desimal:</h4>
+                    <div id="drag-items-container" class="flex flex-wrap gap-3 min-h-[60px]">
+                        <!-- JS Dynamic Items -->
+                    </div>
+                </div>
+
+                <!-- Keranjang Target Drop -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="drag-targets-container">
+                    <!-- JS Dynamic Target Baskets -->
+                </div>
+            </div>
+
+            <!-- SUB-GAME 3: MENJODOHKAN (MATCHING PAIRS) -->
+            <div id="subgame-match" class="game-view hidden bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold">🃏 Menjodohkan Kartu Memori (15 Pasang)</h3>
+                        <p class="text-xs text-slate-500 font-poppins">Cari pasangan kartu antara Pecahan Desimal dengan Persen (%) yang senilai!</p>
+                    </div>
+                    <button onclick="initMatchGame()" class="px-3 py-1.5 bg-brand-purple text-white rounded-xl text-xs font-bold">Main Ulang</button>
+                </div>
+
+                <div id="match-cards-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                    <!-- 30 Cards JS Dynamic -->
+                </div>
+            </div>
+
+            <!-- SUB-GAME 4: TANTANGAN CEPAT (TIMER ATTACK) -->
+            <div id="subgame-timer" class="game-view hidden bg-white rounded-3xl p-6 shadow-md border border-slate-200 text-center space-y-6">
+                <div id="timer-start-screen" class="space-y-4 py-8">
+                    <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-4xl animate-bounce">⚡</div>
+                    <h3 class="text-2xl font-bold">Tantangan Konversi Cepat 60 Detik!</h3>
+                    <p class="text-slate-500 max-w-md mx-auto font-poppins text-sm">Jawab sebanyak mungkin soal konversi desimal-persen sebelum waktu habis. Dapatkan combo streak bonus!</p>
+                    <button onclick="startTimerGame()" class="btn-bounce bg-brand-green text-white px-8 py-3 rounded-2xl font-bold text-lg shadow-lg">Mulai Sekarang 🔥</button>
+                </div>
+
+                <div id="timer-active-screen" class="hidden space-y-6 max-w-xl mx-auto text-left">
+                    <div class="flex justify-between items-center bg-slate-100 p-4 rounded-2xl">
+                        <div>
+                            <span class="text-xs text-slate-400 font-poppins">SISA WAKTU:</span>
+                            <div class="text-2xl font-extrabold text-brand-red" id="timer-countdown">60 Detik</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 font-poppins">SKOR CEPAT:</span>
+                            <div class="text-2xl font-extrabold text-brand-blue" id="timer-score">0</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-3xl border border-blue-200 text-center space-y-4">
+                        <span class="text-xs font-bold bg-brand-blue text-white px-3 py-1 rounded-full uppercase">Konversikan!</span>
+                        <div class="text-4xl font-extrabold text-slate-800" id="timer-question-prompt">0,34 = ... %</div>
+                        <div class="grid grid-cols-2 gap-3" id="timer-options-container">
+                            <!-- 4 Choice buttons JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. KUIS TAB -->
+        <section id="tab-kuis" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">📝 Kuis Uji Pemahaman</h2>
+                        <p class="text-slate-500 text-sm font-poppins">Selesaikan kuis Pilihan Ganda, Isian Singkat, dan Benar/Salah!</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="selectQuizSubTab('quiz-mcq')" id="btn-q-mcq" class="subquiz-btn px-4 py-2 rounded-xl text-sm font-bold bg-brand-yellow text-brand-dark shadow">🔘 Pilihan Ganda</button>
+                        <button onclick="selectQuizSubTab('quiz-fill')" id="btn-q-fill" class="subquiz-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">✍️ Isian Singkat</button>
+                        <button onclick="selectQuizSubTab('quiz-tf')" id="btn-q-tf" class="subquiz-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">✔️❌ Benar / Salah</button>
+                    </div>
+                </div>
+
+                <!-- KUIS 1: PILIHAN GANDA (15 SOAL) -->
+                <div id="subquiz-mcq" class="quiz-view block space-y-4">
+                    <div class="flex justify-between items-center text-sm font-semibold text-slate-500">
+                        <span>Soal Ke- <span id="mcq-idx">1</span> dari 15</span>
+                        <span>Skor MCQ: <span id="mcq-score">0</span></span>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
+                        <h3 class="text-lg font-bold text-slate-800" id="mcq-question">Loading Question...</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="mcq-options">
+                            <!-- Options JS -->
+                        </div>
+                    </div>
+
+                    <!-- Feedback & Explanation Box -->
+                    <div id="mcq-feedback" class="hidden p-4 rounded-2xl font-poppins text-sm border space-y-2">
+                        <!-- JS Feedback -->
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button id="mcq-next-btn" onclick="nextMCQ()" class="hidden bg-brand-blue text-white px-6 py-2.5 rounded-xl font-bold">Soal Berikutnya ➔</button>
+                    </div>
+                </div>
+
+                <!-- KUIS 2: FILL IN THE BLANK (15 SOAL) -->
+                <div id="subquiz-fill" class="quiz-view hidden space-y-4">
+                    <div class="flex justify-between items-center text-sm font-semibold text-slate-500">
+                        <span>Soal Ke- <span id="fill-idx">1</span> dari 15</span>
+                        <span>Skor Isian: <span id="fill-score">0</span></span>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 text-center">
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">Isilah Angka Yang Tepat</span>
+                        <h3 class="text-2xl font-bold text-slate-800 py-4" id="fill-question">... = ...</h3>
+                        
+                        <div class="flex justify-center items-center space-x-2 max-w-xs mx-auto">
+                            <input type="text" id="fill-input" placeholder="Ketik angka..." class="w-full text-center px-4 py-3 rounded-2xl border-2 border-slate-300 focus:border-brand-purple focus:outline-none text-xl font-bold">
+                            <button onclick="checkFillAnswer()" class="bg-brand-purple text-white px-5 py-3 rounded-2xl font-bold">Kirim</button>
+                        </div>
+                    </div>
+
+                    <div id="fill-feedback" class="hidden p-4 rounded-2xl font-poppins text-sm border space-y-2"></div>
+
+                    <div class="flex justify-end">
+                        <button id="fill-next-btn" onclick="nextFill()" class="hidden bg-brand-purple text-white px-6 py-2.5 rounded-xl font-bold">Soal Berikutnya ➔</button>
+                    </div>
+                </div>
+
+                <!-- KUIS 3: BENAR / SALAH (15 SOAL) -->
+                <div id="subquiz-tf" class="quiz-view hidden space-y-4">
+                    <div class="flex justify-between items-center text-sm font-semibold text-slate-500">
+                        <span>Soal Ke- <span id="tf-idx">1</span> dari 15</span>
+                        <span>Skor Benar/Salah: <span id="tf-score">0</span></span>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-6 text-center">
+                        <span class="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold">Apakah Pernyataan Ini Benar Atau Salah?</span>
+                        <h3 class="text-xl md:text-2xl font-bold text-slate-800" id="tf-question">"0,05 sama nilainya dengan 50%"</h3>
+
+                        <div class="flex justify-center space-x-4">
+                            <button onclick="checkTFAnswer(true)" class="btn-bounce bg-emerald-500 text-white w-32 py-3 rounded-2xl font-bold text-lg shadow-md flex items-center justify-center space-x-2">
+                                <span>✔️ BENAR</span>
+                            </button>
+                            <button onclick="checkTFAnswer(false)" class="btn-bounce bg-rose-500 text-white w-32 py-3 rounded-2xl font-bold text-lg shadow-md flex items-center justify-center space-x-2">
+                                <span>❌ SALAH</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="tf-feedback" class="hidden p-4 rounded-2xl font-poppins text-sm border space-y-2"></div>
+
+                    <div class="flex justify-end">
+                        <button id="tf-next-btn" onclick="nextTF()" class="hidden bg-brand-green text-white px-6 py-2.5 rounded-xl font-bold">Soal Berikutnya ➔</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. HASIL & LENCANA TAB -->
+        <section id="tab-hasil" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-200 space-y-8">
+                <div class="text-center space-y-2">
+                    <span class="text-5xl">🏆</span>
+                    <h2 class="text-3xl font-extrabold text-slate-800">Rapor Pencapaian Belajar</h2>
+                    <p class="text-slate-500 font-poppins text-sm">Lihat akumulasi total skor, koleksi lencana, dan sertifikat kelulusanmu!</p>
+                </div>
+
+                <!-- Main Score Summary Box -->
+                <div class="bg-gradient-to-r from-amber-400 to-amber-500 p-6 rounded-3xl text-white shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="space-y-1 text-center md:text-left">
+                        <span class="text-xs uppercase font-poppins tracking-wider text-amber-100">Total Akumulasi Skor</span>
+                        <div class="text-4xl md:text-5xl font-extrabold" id="report-total-score">0 PTS</div>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl text-center border border-white/30">
+                        <span class="text-xs text-amber-100 block">Gelar Master Saat Ini:</span>
+                        <span id="report-badge-title" class="text-xl font-bold">Pencari Persen Pemula</span>
+                    </div>
+                </div>
+
+                <!-- Koleksi Lencana (Badges Showcase) -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold border-b pb-2">🎖️ Galeri Lencana Keahlian</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div id="badge-card-1" class="bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl text-center space-y-2 opacity-50 grayscale transition-all">
+                            <div class="text-4xl">🥉</div>
+                            <h4 class="font-bold text-sm">Pencari Persen</h4>
+                            <p class="text-xs text-slate-400 font-poppins">Capai 50 Skor</p>
+                        </div>
+                        <div id="badge-card-2" class="bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl text-center space-y-2 opacity-50 grayscale transition-all">
+                            <div class="text-4xl">🥈</div>
+                            <h4 class="font-bold text-sm">Jagoan Desimal</h4>
+                            <p class="text-xs text-slate-400 font-poppins">Capai 150 Skor</p>
+                        </div>
+                        <div id="badge-card-3" class="bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl text-center space-y-2 opacity-50 grayscale transition-all">
+                            <div class="text-4xl">🥇</div>
+                            <h4 class="font-bold text-sm">Master Perseratusan</h4>
+                            <p class="text-xs text-slate-400 font-poppins">Capai 300 Skor</p>
+                        </div>
+                        <div id="badge-card-4" class="bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl text-center space-y-2 opacity-50 grayscale transition-all">
+                            <div class="text-4xl">👑</div>
+                            <h4 class="font-bold text-sm">Juara Matematika</h4>
+                            <p class="text-xs text-slate-400 font-poppins">Capai 500 Skor</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sertifikat Generator Box -->
+                <div class="bg-indigo-50 p-6 rounded-3xl border-2 border-indigo-200 text-center space-y-4">
+                    <h3 class="text-xl font-bold text-indigo-900">📜 Sertifikat Kelulusan Persen SD</h3>
+                    <p class="text-xs text-indigo-700 font-poppins max-w-lg mx-auto">Ketik namamu di bawah ini untuk mencetak Sertifikat Kelulusan Modul Persen & Desimal Perseratusan Kelas IV!</p>
+                    <div class="flex justify-center items-center space-x-2 max-w-sm mx-auto">
+                        <input type="text" id="cert-name-input" placeholder="Ketik Nama Siswa..." class="w-full px-4 py-2.5 rounded-xl border border-indigo-300 focus:outline-none text-sm font-semibold">
+                        <button onclick="printCertificate()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700">Cetak</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- POP-UP MODAL SOAL OPEN THE BOX -->
+    <div id="box-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-scaleIn">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-lg font-bold text-brand-dark" id="modal-box-title">Kotak Rahasia #1</h3>
+                <button onclick="closeBoxModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="space-y-3 font-poppins">
+                <p class="text-sm text-slate-700 font-semibold" id="modal-box-question">Soal konversi...</p>
+                <div class="space-y-2" id="modal-box-options">
+                    <!-- Dynamic Box Choice Buttons -->
+                </div>
+            </div>
+            <div id="modal-box-feedback" class="hidden p-3 rounded-xl text-xs font-poppins border"></div>
+        </div>
+    </div>
+
+    <!-- SOUND & ENGINE SCRIPT -->
+    <script>
+        /* ==========================================================================
+           1. WEB AUDIO API SYNTHESIZER (Tanpa File External Sound)
+           ========================================================================== */
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.exponentialRampToValueAtTime(140, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'victory') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    osc.frequency.setValueAtTime(880, now + 0.3);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                }
+            } catch (e) {
+                console.log("Audio not supported or blocked", e);
+            }
+        }
+
+        /* ==========================================================================
+           2. GLOBAL STATE & NAVIGATION ENGINE
+           ========================================================================== */
+        let globalScore = 0;
+
+        function addGlobalScore(pts) {
+            globalScore += pts;
+            document.getElementById('global-score').innerText = globalScore;
+            document.getElementById('report-total-score').innerText = globalScore + ' PTS';
+            updateBadges();
+        }
+
+        function updateBadges() {
+            const bTitle = document.getElementById('global-badge');
+            const rTitle = document.getElementById('report-badge-title');
+
+            const card1 = document.getElementById('badge-card-1');
+            const card2 = document.getElementById('badge-card-2');
+            const card3 = document.getElementById('badge-card-3');
+            const card4 = document.getElementById('badge-card-4');
+
+            if (globalScore >= 500) {
+                bTitle.innerText = "Juara Matematika 👑";
+                rTitle.innerText = "Juara Utama Persen & Desimal 👑";
+                card4.classList.remove('opacity-50', 'grayscale');
+                card3.classList.remove('opacity-50', 'grayscale');
+                card2.classList.remove('opacity-50', 'grayscale');
+                card1.classList.remove('opacity-50', 'grayscale');
+            } else if (globalScore >= 300) {
+                bTitle.innerText = "Master Persen 🥇";
+                rTitle.innerText = "Master Perseratusan 🥇";
+                card3.classList.remove('opacity-50', 'grayscale');
+                card2.classList.remove('opacity-50', 'grayscale');
+                card1.classList.remove('opacity-50', 'grayscale');
+            } else if (globalScore >= 150) {
+                bTitle.innerText = "Jagoan Desimal 🥈";
+                rTitle.innerText = "Jagoan Desimal Perseratusan 🥈";
+                card2.classList.remove('opacity-50', 'grayscale');
+                card1.classList.remove('opacity-50', 'grayscale');
+            } else if (globalScore >= 50) {
+                bTitle.innerText = "Pencari Persen 🥉";
+                rTitle.innerText = "Pencari Persen Handal 🥉";
+                card1.classList.remove('opacity-50', 'grayscale');
+            }
+        }
+
+        function switchTab(tabId) {
+            playSound('click');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-yellow', 'text-brand-dark', 'shadow');
+                btn.classList.add('hover:bg-slate-100', 'text-slate-600');
+            });
+
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('hover:bg-slate-100', 'text-slate-600');
+                activeBtn.classList.add('bg-brand-yellow', 'text-brand-dark', 'shadow');
+            }
+
+            // Lazy initializers
+            if (tabId === 'simulasi') initSimulasiGrid();
+            if (tabId === 'permainan') initOpenTheBox();
+            if (tabId === 'kuis') loadMCQQuestion();
+        }
+
+        /* ==========================================================================
+           3. SIMULASI ENGINE (Grid 10x10 Interaktif)
+           ========================================================================== */
+        let simCount = 0;
+
+        function initSimulasiGrid() {
+            const container = document.getElementById('sim-grid-container');
+            if (container.children.length > 0) return; // Already loaded
+
+            container.innerHTML = '';
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell bg-white rounded-sm cursor-pointer hover:opacity-80 aspect-square border border-slate-300';
+                cell.dataset.index = i;
+                cell.onclick = () => toggleCell(cell);
+                container.appendChild(cell);
+            }
+        }
+
+        function toggleCell(cell) {
+            playSound('click');
+            if (cell.classList.contains('bg-brand-green')) {
+                cell.classList.remove('bg-brand-green');
+                cell.classList.add('bg-white');
+            } else {
+                cell.classList.remove('bg-white');
+                cell.classList.add('bg-brand-green');
+            }
+            recalcSimulasi();
+        }
+
+        function updateSimFromSlider(val) {
+            simCount = parseInt(val);
+            const cells = document.querySelectorAll('#sim-grid-container .grid-cell');
+            cells.forEach((cell, idx) => {
+                if (idx < simCount) {
+                    cell.classList.remove('bg-white');
+                    cell.classList.add('bg-brand-green');
+                } else {
+                    cell.classList.remove('bg-brand-green');
+                    cell.classList.add('bg-white');
+                }
+            });
+            recalcSimulasiDisplay();
+        }
+
+        function presetSimulasi(num) {
+            document.getElementById('sim-slider').value = num;
+            updateSimFromSlider(num);
+        }
+
+        function clearSimulasi() {
+            presetSimulasi(0);
+        }
+
+        function recalcSimulasi() {
+            const greenCells = document.querySelectorAll('#sim-grid-container .bg-brand-green');
+            simCount = greenCells.length;
+            document.getElementById('sim-slider').value = simCount;
+            recalcSimulasiDisplay();
+        }
+
+        function recalcSimulasiDisplay() {
+            document.getElementById('sim-count').innerText = simCount;
+            document.getElementById('sim-fraction').innerText = `${simCount}/100`;
+            
+            // Format desimal perseratusan 2 angka belakang koma
+            let decStr = (simCount / 100).toFixed(2).replace('.', ',');
+            document.getElementById('sim-decimal').innerText = decStr;
+            document.getElementById('sim-percent').innerText = `${simCount}%`;
+
+            const exp = document.getElementById('sim-explanation');
+            exp.innerHTML = `<strong>Penjelasan:</strong> ${simCount} kotak dari 100 diwarnai. Ini mewakili pecahan <strong>${simCount}/100</strong>, yang jika ditulis dalam desimal adalah <strong>${decStr}</strong> dan sama nilainya dengan <strong>${simCount}%</strong>.`;
+        }
+
+        /* ==========================================================================
+           4. PERMAINAN ENGINE
+           ========================================================================== */
+        function selectGameSubTab(subId) {
+            playSound('click');
+            document.querySelectorAll('.game-view').forEach(el => el.classList.add('hidden'));
+            document.getElementById('subgame-' + subId.replace('game-', '')).classList.remove('hidden');
+
+            document.querySelectorAll('.subgame-btn').forEach(b => {
+                b.classList.remove('bg-brand-yellow', 'text-brand-dark', 'shadow');
+                b.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            const activeB = document.getElementById('btn-g-' + subId.replace('game-', ''));
+            if (activeB) {
+                activeB.classList.remove('bg-slate-100', 'text-slate-600');
+                activeB.classList.add('bg-brand-yellow', 'text-brand-dark', 'shadow');
+            }
+
+            if (subId === 'game-drag') initDragGame();
+            if (subId === 'game-match') initMatchGame();
+        }
+
+        // --- SUBGAME 1: OPEN THE BOX (15 KOTAK) ---
+        const boxQuestions = [
+            { id: 1, text: "Berapa persen nilai dari 0,15?", choices: ["15%", "50%", "1,5%"], ans: 0 },
+            { id: 2, text: "Berapa desimal dari 42%?", choices: ["0,42", "4,2", "0,042"], ans: 0 },
+            { id: 3, text: "Berapa persen nilai dari 0,08?", choices: ["80%", "8%", "0,8%"], ans: 1 },
+            { id: 4, text: "Berapa desimal dari 90%?", choices: ["0,09", "0,90", "9,0"], ans: 1 },
+            { id: 5, text: "Berapa persen nilai dari 0,67?", choices: ["67%", "6,7%", "76%"], ans: 0 },
+            { id: 6, text: "Berapa desimal dari 5%?", choices: ["0,5", "0,05", "5,0"], ans: 1 },
+            { id: 7, text: "Berapa persen nilai dari 0,30?", choices: ["3%", "30%", "300%"], ans: 1 },
+            { id: 8, text: "Berapa desimal dari 100%?", choices: ["1,00", "10,0", "0,10"], ans: 0 },
+            { id: 9, text: "Berapa persen nilai dari 0,01?", choices: ["10%", "1%", "0,1%"], ans: 1 },
+            { id: 10, text: "Berapa desimal dari 77%?", choices: ["0,77", "7,7", "0,077"], ans: 0 },
+            { id: 11, text: "Berapa persen nilai dari 0,55?", choices: ["55%", "5,5%", "50%"], ans: 0 },
+            { id: 12, text: "Berapa desimal dari 2%?", choices: ["0,2", "0,02", "2,0"], ans: 1 },
+            { id: 13, text: "Berapa persen nilai dari 0,84?", choices: ["84%", "48%", "8,4%"], ans: 0 },
+            { id: 14, text: "Berapa desimal dari 63%?", choices: ["0,63", "6,3", "0,063"], ans: 0 },
+            { id: 15, text: "Berapa persen nilai dari 0,99?", choices: ["99%", "9,9%", "90%"], ans: 0 }
+        ];
+
+        let boxOpenedStatus = new Array(15).fill(false);
+
+        function initOpenTheBox() {
+            const grid = document.getElementById('box-grid');
+            if (grid.children.length > 0) return;
+            grid.innerHTML = '';
+
+            boxQuestions.forEach((q, idx) => {
+                const boxBtn = document.createElement('div');
+                boxBtn.className = 'btn-bounce bg-gradient-to-br from-amber-300 to-brand-yellow border-4 border-amber-400 p-4 rounded-2xl shadow-md cursor-pointer flex flex-col items-center justify-center space-y-2 aspect-square text-brand-dark font-extrabold text-xl relative';
+                boxBtn.id = `box-item-${idx}`;
+                boxBtn.innerHTML = `<span>🎁</span><span>#${idx + 1}</span>`;
+                boxBtn.onclick = () => openBoxModal(idx);
+                grid.appendChild(boxBtn);
+            });
+        }
+
+        let activeBoxIdx = null;
+
+        function openBoxModal(idx) {
+            playSound('click');
+            if (boxOpenedStatus[idx]) return;
+            activeBoxIdx = idx;
+
+            const q = boxQuestions[idx];
+            document.getElementById('modal-box-title').innerText = `Kotak Rahasia #${idx + 1}`;
+            document.getElementById('modal-box-question').innerText = q.text;
+
+            const optsDiv = document.getElementById('modal-box-options');
+            optsDiv.innerHTML = '';
+            document.getElementById('modal-box-feedback').className = 'hidden p-3 rounded-xl text-xs font-poppins border';
+
+            q.choices.forEach((choice, cIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-3 rounded-xl border bg-slate-50 hover:bg-slate-100 font-bold text-slate-700 text-sm';
+                btn.innerText = `${String.fromCharCode(65 + cIdx)}. ${choice}`;
+                btn.onclick = () => answerBoxQuestion(cIdx);
+                optsDiv.appendChild(btn);
+            });
+
+            document.getElementById('box-modal').classList.remove('hidden');
+        }
+
+        function closeBoxModal() {
+            document.getElementById('box-modal').classList.add('hidden');
+        }
+
+        function answerBoxQuestion(choiceIdx) {
+            const q = boxQuestions[activeBoxIdx];
+            const fb = document.getElementById('modal-box-feedback');
+            fb.classList.remove('hidden');
+
+            if (choiceIdx === q.ans) {
+                playSound('correct');
+                fb.className = 'p-3 rounded-xl text-xs font-poppins bg-emerald-100 border-emerald-300 text-emerald-800 font-bold';
+                fb.innerText = '🎉 Jawaban Benar! +10 Skor!';
+                boxOpenedStatus[activeBoxIdx] = true;
+
+                const boxEl = document.getElementById(`box-item-${activeBoxIdx}`);
+                boxEl.className = 'bg-slate-100 border-2 border-slate-300 p-4 rounded-2xl cursor-default flex flex-col items-center justify-center space-y-1 opacity-70 aspect-square text-slate-400 font-bold text-sm';
+                boxEl.innerHTML = `<span>⭐</span><span>Selesai</span>`;
+
+                addGlobalScore(10);
+                document.getElementById('box-opened-count').innerText = boxOpenedStatus.filter(Boolean).length;
+
+                setTimeout(closeBoxModal, 1200);
+            } else {
+                playSound('wrong');
+                fb.className = 'p-3 rounded-xl text-xs font-poppins bg-rose-100 border-rose-300 text-rose-800 font-bold';
+                fb.innerText = '❌ Jawaban belum tepat, coba pilih lagi!';
+            }
+        }
+
+        // --- SUBGAME 2: DRAG AND DROP (15 OBJECTS) ---
+        const dragDataPairs = [
+            { dec: "0,25", percent: "25%" },
+            { dec: "0,50", percent: "50%" },
+            { dec: "0,75", percent: "75%" },
+            { dec: "0,10", percent: "10%" },
+            { dec: "0,05", percent: "5%" },
+            { dec: "0,40", percent: "40%" },
+            { dec: "0,80", percent: "80%" },
+            { dec: "0,95", percent: "95%" }
+        ];
+
+        let selectedDragItem = null;
+
+        function initDragGame() {
+            const itemContainer = document.getElementById('drag-items-container');
+            const targetContainer = document.getElementById('drag-targets-container');
+
+            itemContainer.innerHTML = '';
+            targetContainer.innerHTML = '';
+            selectedDragItem = null;
+
+            // Pick 4 random active pairs
+            const shuffled = [...dragDataPairs].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+            // Render Draggable Items
+            shuffled.forEach(pair => {
+                const card = document.createElement('div');
+                card.className = 'px-4 py-2.5 bg-white border-2 border-brand-blue text-brand-blue font-extrabold rounded-xl shadow cursor-pointer select-none';
+                card.innerText = pair.dec;
+                card.dataset.val = pair.dec;
+                card.dataset.match = pair.percent;
+
+                // Drag API
+                card.draggable = true;
+                card.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', pair.dec);
+                    e.dataTransfer.setData('match', pair.percent);
+                };
+
+                // Click API Alternative for Mobile Touch
+                card.onclick = () => {
+                    playSound('click');
+                    document.querySelectorAll('#drag-items-container > div').forEach(c => c.classList.remove('selected-drag-item'));
+                    card.classList.add('selected-drag-item');
+                    selectedDragItem = { el: card, match: pair.percent };
+                };
+
+                itemContainer.appendChild(card);
+            });
+
+            // Render Drop Targets
+            shuffled.forEach(pair => {
+                const target = document.createElement('div');
+                target.className = 'bg-purple-50 border-2 border-dashed border-purple-300 p-4 rounded-2xl flex flex-col items-center justify-center space-y-2 min-h-[100px] transition-all';
+                target.innerHTML = `<span class="text-2xl font-extrabold text-brand-purple">${pair.percent}</span><span class="text-xs text-slate-400 font-poppins">Letakkan Di Sini</span>`;
+                target.dataset.targetMatch = pair.percent;
+
+                // Drag API
+                target.ondragover = (e) => e.preventDefault();
+                target.ondrop = (e) => {
+                    e.preventDefault();
+                    const match = e.dataTransfer.getData('match');
+                    const val = e.dataTransfer.getData('text/plain');
+                    handleDropSuccess(match, pair.percent, target, val);
+                };
+
+                // Click API for mobile
+                target.onclick = () => {
+                    if (selectedDragItem) {
+                        handleDropSuccess(selectedDragItem.match, pair.percent, target, selectedDragItem.el.innerText);
+                    }
+                };
+
+                targetContainer.appendChild(target);
+            });
+        }
+
+        function handleDropSuccess(itemMatch, targetMatch, targetEl, valText) {
+            if (itemMatch === targetMatch) {
+                playSound('correct');
+                targetEl.className = 'bg-emerald-100 border-2 border-emerald-400 p-4 rounded-2xl flex flex-col items-center justify-center space-y-1 shadow';
+                targetEl.innerHTML = `<span class="text-xs font-bold text-emerald-600">Cocok!</span><span class="text-xl font-extrabold text-emerald-800">${valText} = ${targetMatch}</span>`;
+
+                // Remove item
+                if (selectedDragItem && selectedDragItem.el) selectedDragItem.el.remove();
+                else {
+                    const items = document.querySelectorAll('#drag-items-container > div');
+                    items.forEach(it => { if (it.dataset.val === valText) it.remove(); });
+                }
+                selectedDragItem = null;
+                addGlobalScore(15);
+            } else {
+                playSound('wrong');
+            }
+        }
+
+        // --- SUBGAME 3: MENJODOHKAN (MATCHING CARDS) ---
+        const matchPairsData = [
+            { dec: "0,05", per: "5%" },
+            { dec: "0,12", per: "12%" },
+            { dec: "0,20", per: "20%" },
+            { dec: "0,35", per: "35%" },
+            { dec: "0,50", per: "50%" },
+            { dec: "0,88", per: "88%" }
+        ];
+
+        let flippedCards = [];
+        let matchedCount = 0;
+
+        function initMatchGame() {
+            const grid = document.getElementById('match-cards-grid');
+            grid.innerHTML = '';
+            flippedCards = [];
+            matchedCount = 0;
+
+            let cardDeck = [];
+            matchPairsData.forEach((p, idx) => {
+                cardDeck.push({ id: idx, val: p.dec, pairId: idx });
+                cardDeck.push({ id: idx, val: p.per, pairId: idx });
+            });
+            cardDeck.sort(() => 0.5 - Math.random());
+
+            cardDeck.forEach((c, index) => {
+                const card = document.createElement('div');
+                card.className = 'perspective-1000 h-24 cursor-pointer';
+                card.innerHTML = `
+                    <div class="card-inner w-full h-full relative transform-style-3d transition-transform duration-300 shadow-md rounded-2xl" id="m-card-${index}">
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold backface-hidden">❓</div>
+                        <div class="absolute inset-0 bg-white border-2 border-brand-purple rounded-2xl flex items-center justify-center text-brand-purple font-extrabold text-lg rotate-y-180 backface-hidden">${c.val}</div>
+                    </div>
+                `;
+                card.onclick = () => flipMatchCard(index, c.pairId);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipMatchCard(index, pairId) {
+            if (flippedCards.length >= 2) return;
+            const inner = document.getElementById(`m-card-${index}`);
+            if (inner.classList.contains('rotate-y-180')) return; // Already flipped
+
+            playSound('click');
+            inner.classList.add('rotate-y-180');
+            flippedCards.push({ index, pairId, inner });
+
+            if (flippedCards.length === 2) {
+                if (flippedCards[0].pairId === flippedCards[1].pairId) {
+                    playSound('correct');
+                    matchedCount++;
+                    addGlobalScore(20);
+                    flippedCards = [];
+                    if (matchedCount === matchPairsData.length) {
+                        setTimeout(() => triggerConfetti(), 300);
+                    }
+                } else {
+                    playSound('wrong');
+                    setTimeout(() => {
+                        flippedCards[0].inner.classList.remove('rotate-y-180');
+                        flippedCards[1].inner.classList.remove('rotate-y-180');
+                        flippedCards = [];
+                    }, 800);
+                }
+            }
+        }
+
+        // --- SUBGAME 4: TANTANGAN CEPAT (TIMER CHALLENGE) ---
+        let timerSeconds = 60;
+        let timerInterval = null;
+        let timerScore = 0;
+        let currentTimerAns = "";
+
+        function startTimerGame() {
+            playSound('click');
+            document.getElementById('timer-start-screen').classList.add('hidden');
+            document.getElementById('timer-active-screen').classList.remove('hidden');
+
+            timerSeconds = 60;
+            timerScore = 0;
+            document.getElementById('timer-countdown').innerText = "60 Detik";
+            document.getElementById('timer-score').innerText = "0";
+
+            nextTimerQuestion();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                document.getElementById('timer-countdown').innerText = `${timerSeconds} Detik`;
+
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    playSound('victory');
+                    alert(`⏰ Waktu Habis! Skor Tantangan Cepatmu: ${timerScore}`);
+                    addGlobalScore(timerScore);
+                    document.getElementById('timer-start-screen').classList.remove('hidden');
+                    document.getElementById('timer-active-screen').classList.add('hidden');
+                }
+            }, 1000);
+        }
+
+        function nextTimerQuestion() {
+            const val = Math.floor(Math.random() * 90) + 5;
+            const dec = (val / 100).toFixed(2).replace('.', ',');
+            const percent = `${val}%`;
+
+            document.getElementById('timer-question-prompt').innerText = `${dec} = ... %`;
+            currentTimerAns = percent;
+
+            const opts = [percent];
+            while (opts.length < 4) {
+                const fake = `${Math.floor(Math.random() * 90) + 5}%`;
+                if (!opts.includes(fake)) opts.push(fake);
+            }
+            opts.sort(() => 0.5 - Math.random());
+
+            const container = document.getElementById('timer-options-container');
+            container.innerHTML = '';
+            opts.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'p-3 bg-white border-2 border-blue-200 hover:border-brand-blue font-extrabold text-blue-900 rounded-2xl shadow text-lg';
+                b.innerText = opt;
+                b.onclick = () => {
+                    if (opt === currentTimerAns) {
+                        playSound('correct');
+                        timerScore += 10;
+                        document.getElementById('timer-score').innerText = timerScore;
+                    } else {
+                        playSound('wrong');
+                    }
+                    nextTimerQuestion();
+                };
+                container.appendChild(b);
+            });
+        }
+
+        /* ==========================================================================
+           5. KUIS ENGINE (MCQ, Fill, True/False - Total 45 Soal Generator/Pool)
+           ========================================================================== */
+        function selectQuizSubTab(subId) {
+            playSound('click');
+            document.querySelectorAll('.quiz-view').forEach(el => el.classList.add('hidden'));
+            document.getElementById('subquiz-' + subId.replace('quiz-', '')).classList.remove('hidden');
+
+            document.querySelectorAll('.subquiz-btn').forEach(b => {
+                b.classList.remove('bg-brand-yellow', 'text-brand-dark', 'shadow');
+                b.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            const activeB = document.getElementById('btn-q-' + subId.replace('quiz-', ''));
+            if (activeB) {
+                activeB.classList.remove('bg-slate-100', 'text-slate-600');
+                activeB.classList.add('bg-brand-yellow', 'text-brand-dark', 'shadow');
+            }
+
+            if (subId === 'quiz-mcq') loadMCQQuestion();
+            if (subId === 'quiz-fill') loadFillQuestion();
+            if (subId === 'quiz-tf') loadTFQuestion();
+        }
+
+        // --- KUIS 1: PILIHAN GANDA (15 SOAL) ---
+        const mcqQuestions = [
+            { q: "1. Bentuk persen dari pecahan desimal 0,45 adalah ...", choices: ["4,5%", "45%", "450%", "0,45%"], ans: 1, exp: "0,45 sama dengan 45/100, sehingga bernilai 45%." },
+            { q: "2. Nilai desimal dari 80% adalah ...", choices: ["0,08", "0,80", "8,00", "0,008"], ans: 1, exp: "80% = 80/100 = 0,80." },
+            { q: "3. Lambang % dibaca ...", choices: ["Per seribu", "Per seratus", "Per sepuluh", "Persamaan"], ans: 1, exp: "Persen berasal dari kata 'per centum' yang artinya per seratus." },
+            { q: "4. Ibu mewarnai 12 dari 100 kotak kue. Bentuk desimal dan persennya adalah ...", choices: ["0,12 dan 12%", "1,2 dan 12%", "0,012 dan 1,2%", "0,12 dan 120%"], ans: 0, exp: "12 dari 100 = 12/100 = 0,12 = 12%." },
+            { q: "5. Manakah nilai pecahan desimal yang PALING BESAR?", choices: ["0,09", "0,19", "0,90", "0,59"], ans: 2, exp: "0,90 (90%) lebih besar dibanding 0,09 (9%), 0,19 (19%), dan 0,59 (59%)." },
+            { q: "6. Bentuk persen dari 0,07 adalah ...", choices: ["70%", "7%", "0,7%", "700%"], ans: 1, exp: "0,07 memiliki dua angka di belakang koma, nilainya 7/100 = 7%." },
+            { q: "7. Pecahan 65/100 jika diubah ke bentuk desimal dan persen menjadi ...", choices: ["0,65 dan 65%", "6,5 dan 65%", "0,065 dan 6,5%", "0,65 dan 650%"], ans: 0, exp: "65/100 = 0,65 = 65%." },
+            { q: "8. 0,5 jika diubah ke perseratusan menjadi 0,50. Nilai persennya adalah ...", choices: ["5%", "50%", "500%", "0,5%"], ans: 1, exp: "0,5 = 0,50 = 50/100 = 50%." },
+            { q: "9. Bentuk desimal dari 3% adalah ...", choices: ["0,3", "0,03", "3,0", "0,003"], ans: 1, exp: "3% = 3/100 = 0,03." },
+            { q: "10. Pak Tani memanen 100 buah semangka. 34 semangka sudah manis. Berapa persen semangka yang manis?", choices: ["34%", "43%", "3,4%", "340%"], ans: 0, exp: "34 dari 100 semangka = 34/100 = 34%." },
+            { q: "11. 0,99 sama nilainya dengan ...", choices: ["99%", "9,9%", "0,99%", "990%"], ans: 0, exp: "0,99 = 99/100 = 99%." },
+            { q: "12. Bentuk persen dari 0,22 adalah ...", choices: ["2,2%", "22%", "220%", "0,22%"], ans: 1, exp: "0,22 = 22/100 = 22%." },
+            { q: "13. Nilai desimal dari 100% adalah ...", choices: ["0,10", "1,00", "10,0", "0,01"], ans: 1, exp: "100% = 100/100 = 1,00." },
+            { q: "14. Di perpustakaan, 0,48 dari buku adalah buku cerita. Berapa persen buku cerita tersebut?", choices: ["4,8%", "48%", "480%", "0,48%"], ans: 1, exp: "0,48 = 48/100 = 48%." },
+            { q: "15. Manakah pasangan konversi yang BENAR?", choices: ["0,04 = 40%", "0,4 = 4%", "0,14 = 14%", "0,41 = 4,1%"], ans: 2, exp: "0,14 = 14/100 = 14% adalah pasangan yang benar." }
+        ];
+
+        let mcqIdx = 0;
+        let mcqScore = 0;
+
+        function loadMCQQuestion() {
+            const q = mcqQuestions[mcqIdx];
+            document.getElementById('mcq-idx').innerText = mcqIdx + 1;
+            document.getElementById('mcq-question').innerText = q.q;
+            document.getElementById('mcq-feedback').classList.add('hidden');
+            document.getElementById('mcq-next-btn').classList.add('hidden');
+
+            const optsDiv = document.getElementById('mcq-options');
+            optsDiv.innerHTML = '';
+
+            q.choices.forEach((c, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'p-3.5 rounded-2xl border-2 border-slate-200 bg-white hover:border-brand-blue hover:bg-blue-50 text-left font-bold text-slate-700 text-sm transition-all';
+                btn.innerText = `${String.fromCharCode(65 + idx)}. ${c}`;
+                btn.onclick = () => checkMCQAnswer(idx);
+                optsDiv.appendChild(btn);
+            });
+        }
+
+        function checkMCQAnswer(selected) {
+            const q = mcqQuestions[mcqIdx];
+            const fb = document.getElementById('mcq-feedback');
+            fb.classList.remove('hidden');
+
+            if (selected === q.ans) {
+                playSound('correct');
+                fb.className = 'p-4 rounded-2xl font-poppins text-sm bg-emerald-100 border border-emerald-300 text-emerald-800 space-y-1 block';
+                fb.innerHTML = `<div>🎉 <strong>Hebat, Jawaban Benar! (+10 Skor)</strong></div><div class="text-xs">${q.exp}</div>`;
+                mcqScore += 10;
+                addGlobalScore(10);
+                document.getElementById('mcq-score').innerText = mcqScore;
+            } else {
+                playSound('wrong');
+                fb.className = 'p-4 rounded-2xl font-poppins text-sm bg-rose-100 border border-rose-300 text-rose-800 space-y-1 block';
+                fb.innerHTML = `<div>❌ <strong>Kurang Tepat!</strong></div><div class="text-xs">${q.exp}</div>`;
+            }
+
+            document.getElementById('mcq-next-btn').classList.remove('hidden');
+        }
+
+        function nextMCQ() {
+            playSound('click');
+            mcqIdx = (mcqIdx + 1) % mcqQuestions.length;
+            loadMCQQuestion();
+        }
+
+        // --- KUIS 2: FILL IN THE BLANK (15 SOAL) ---
+        const fillQuestions = [
+            { prompt: "Ubah desimal 0,35 menjadi persen = ... %", ans: "35" },
+            { prompt: "Ubah desimal 0,09 menjadi persen = ... %", ans: "9" },
+            { prompt: "Ubah 50% menjadi pecahan desimal = ... (gunakan koma)", ans: "0,50" },
+            { prompt: "Ubah desimal 0,82 menjadi persen = ... %", ans: "82" },
+            { prompt: "Ubah 4% menjadi pecahan desimal = ... (gunakan koma)", ans: "0,04" },
+            { prompt: "Ubah desimal 0,16 menjadi persen = ... %", ans: "16" },
+            { prompt: "Ubah 75% menjadi pecahan desimal = ... (gunakan koma)", ans: "0,75" },
+            { prompt: "Ubah desimal 0,01 menjadi persen = ... %", ans: "1" },
+            { prompt: "Ubah 90% menjadi pecahan desimal = ... (gunakan koma)", ans: "0,90" },
+            { prompt: "Ubah desimal 0,68 menjadi persen = ... %", ans: "68" },
+            { prompt: "Ubah 15% menjadi pecahan desimal = ... (gunakan koma)", ans: "0,15" },
+            { prompt: "Ubah desimal 0,23 menjadi persen = ... %", ans: "23" },
+            { prompt: "Ubah 30% menjadi pecahan desimal = ... (gunakan koma)", ans: "0,30" },
+            { prompt: "Ubah desimal 0,47 menjadi persen = ... %", ans: "47" },
+            { prompt: "Ubah 100% menjadi pecahan desimal = ... (gunakan koma)", ans: "1,00" }
+        ];
+
+        let fillIdx = 0;
+        let fillScore = 0;
+
+        function loadFillQuestion() {
+            const q = fillQuestions[fillIdx];
+            document.getElementById('fill-idx').innerText = fillIdx + 1;
+            document.getElementById('fill-question').innerText = q.prompt;
+            document.getElementById('fill-input').value = '';
+            document.getElementById('fill-feedback').classList.add('hidden');
+            document.getElementById('fill-next-btn').classList.add('hidden');
+        }
+
+        function checkFillAnswer() {
+            const userAns = document.getElementById('fill-input').value.trim().replace('.', ',');
+            const q = fillQuestions[fillIdx];
+            const fb = document.getElementById('fill-feedback');
+            fb.classList.remove('hidden');
+
+            if (userAns === q.ans || userAns === q.ans.replace(',00', '1')) {
+                playSound('correct');
+                fb.className = 'p-4 rounded-2xl font-poppins text-sm bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold block';
+                fb.innerText = '🎉 Pintar Sekali! Jawabanmu Tepat (+10 Skor)';
+                fillScore += 10;
+                addGlobalScore(10);
+                document.getElementById('fill-score').innerText = fillScore;
+            } else {
+                playSound('wrong');
+                fb.className = 'p-4 rounded-2xl font-poppins text-sm bg-rose-100 border border-rose-300 text-rose-800 font-bold block';
+                fb.innerText = `❌ Jawaban yang benar adalah: ${q.ans}`;
+            }
+
+            document.getElementById('fill-next-btn').classList.remove('hidden');
+        }
+
+        function nextFill() {
+            playSound('click');
+            fillIdx = (fillIdx + 1) % fillQuestions.length;
+            loadFillQuestion();
+        }
+
+        // --- KUIS 3: BENAR / SALAH (15 SOAL) ---
+        const tfQuestions = [
+            { statement: "Pecahan desimal 0,05 sama nilainya dengan 50%", ans: false, exp: "Salah. 0,05 nilainya 5%, sedangkan 50% nilainya 0,50." },
+            { statement: "75% sama nilainya dengan desimal 0,75", ans: true, exp: "Benar! 75% = 75/100 = 0,75." },
+            { statement: "Simbol persen (%) memiliki arti per seratus", ans: true, exp: "Benar! Persen berarti per seratus." },
+            { statement: "0,8 sama nilainya dengan 8%", ans: false, exp: "Salah. 0,8 sama dengan 0,80 = 80%." },
+            { statement: "Pecahan 1/100 jika diubah ke desimal adalah 0,01", ans: true, exp: "Benar! 1 per seratus ditulis desimal 0,01." },
+            { statement: "0,34 sama nilainya dengan 34%", ans: true, exp: "Benar! 0,34 = 34/100 = 34%." },
+            { statement: "9% jika diubah ke desimal adalah 0,9", ans: false, exp: "Salah. 9% = 9/100 = 0,09." },
+            { statement: "100% nilainya sama dengan angka 1 utuh", ans: true, exp: "Benar! 100/100 = 1." },
+            { statement: "0,60 nilainya lebih kecil dari 6%", ans: false, exp: "Salah. 0,60 adalah 60%, tentu lebih besar dari 6%." },
+            { statement: "0,12 diubah ke persen menjadi 12%", ans: true, exp: "Benar! 0,12 = 12%." },
+            { statement: "Desimal 0,03 bernilai 30%", ans: false, exp: "Salah. 0,03 adalah 3%." },
+            { statement: "55% senilai dengan pecahan desimal 0,55", ans: true, exp: "Benar! 55% = 0,55." },
+            { statement: "0,02 lebih besar nilainya daripada 20%", ans: false, exp: "Salah. 0,02 = 2%, sedangkan 20% = 0,20." },
+            { statement: "0,45 = 45/100 = 45%", ans: true, exp: "Benar! Ketiga bentuk ini bernilai persis sama." },
+            { statement: "2% sama nilainya dengan 0,2", ans: false, exp: "Salah. 2% = 0,02." }
+        ];
+
+        let tfIdx = 0;
+        let tfScore = 0;
+
+        function loadTFQuestion() {
+            const q = tfQuestions[tfIdx];
+            document.getElementById('tf-idx').innerText = tfIdx + 1;
+            document.getElementById('tf-question').innerText = `"${q.statement}"`;
+            document.getElementById('tf-feedback').classList.add('hidden');
+            document.getElementById('tf-next-btn').classList.add('hidden');
+        }
+
+        function checkTFAnswer(userChoice) {
+            const q = tfQuestions[tfIdx];
+            const fb = document.getElementById('tf-feedback');
+            fb.classList.remove('hidden');
+
+            if (userChoice === q.ans) {
+                playSound('correct');
+                fb.className = 'p-4 rounded-2xl font-poppins text-sm bg-emerald-100 border border-emerald-300 text-emerald-800 space-y-1 block';
+                fb.innerHTML = `<div>🎉 <strong>Jawabanmu Tepat! (+10 Skor)</strong></div><div class="text-xs">${q.exp}</div>`;
+                tfScore += 10;
+                addGlobalScore(10);
+                document.getElementById('tf-score').innerText = tfScore;
+            } else {
+                playSound('wrong');
+                fb.className = 'p-4 rounded-2xl font-poppins text-sm bg-rose-100 border border-rose-300 text-rose-800 space-y-1 block';
+                fb.innerHTML = `<div>❌ <strong>Kurang Tepat!</strong></div><div class="text-xs">${q.exp}</div>`;
+            }
+
+            document.getElementById('tf-next-btn').classList.remove('hidden');
+        }
+
+        function nextTF() {
+            playSound('click');
+            tfIdx = (tfIdx + 1) % tfQuestions.length;
+            loadTFQuestion();
+        }
+
+        /* ==========================================================================
+           6. CONFETTI & CERTIFICATE GENERATOR
+           ========================================================================== */
+        function triggerConfetti() {
+            playSound('victory');
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#FFD166', '#06D6A0', '#118AB2', '#EF476F', '#8338EC'];
+
+            for (let i = 0; i < 120; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vy: Math.random() * 3 + 2,
+                    vx: Math.random() * 2 - 1
+                });
+            }
+
+            let animationId;
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+
+                if (particles.some(p => p.y < canvas.height)) {
+                    animationId = requestAnimationFrame(render);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    cancelAnimationFrame(animationId);
+                }
+            }
+            render();
+        }
+
+        function printCertificate() {
+            const name = document.getElementById('cert-name-input').value.trim() || 'Siswa Hebat SD';
+            const badge = document.getElementById('global-badge').innerText;
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Sertifikat Kelulusan - ${name}</title>
+                    <style>
+                        body { font-family: 'Arial', sans-serif; text-align: center; padding: 40px; background: #f0fdf4; }
+                        .cert { border: 10px solid #06D6A0; padding: 40px; background: white; border-radius: 20px; max-w: 800px; margin: 0 auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+                        h1 { color: #073B4C; font-size: 36px; }
+                        h2 { color: #118AB2; font-size: 28px; margin-top: 20px; }
+                        p { font-size: 18px; color: #475569; line-height: 1.6; }
+                        .badge { font-size: 24px; color: #8338EC; font-weight: bold; margin: 20px 0; }
+                        .footer { margin-top: 40px; font-size: 14px; color: #94a3b8; }
+                    </style>
+                </head>
+                <body>
+                    <div class="cert">
+                        <h1>🏆 SERTIFIKAT KELULUSAN MATEMATIKA 🏆</h1>
+                        <p>Diberikan kepada siswa berprestasi:</p>
+                        <h2>${name}</h2>
+                        <p>Telah berhasil menguasai materi <strong>Hubungan Pecahan Desimal Perseratusan dengan Persen</strong> Kelas IV SD dengan total skor <strong>${globalScore} PTS</strong>.</p>
+                        <div class="badge">Gelar: ${badge}</div>
+                        <p>Diberikan pada: ${new Date().toLocaleDateString('id-ID')}</p>
+                        <div class="footer">Media Pembelajaran Interaktif Persen SD Kelas IV</div>
+                    </div>
+                    <script>window.print();<\/script>
+                </body>
+                </html>
+            `);
+        }
+
+        // Initialize App on load
+        window.onload = function() {
+            initSimulasiGrid();
+        };
+    </script>
+</body>
+</html>
